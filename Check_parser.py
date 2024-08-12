@@ -46,7 +46,10 @@ def parse_check(data: BeautifulSoup) -> dict:
     _: BeautifulSoup = data.find('div').extract()
 
     top_check_block: list = data.text.strip().split('\n')
-    if top_check_block[1].startswith('ИНН'):
+    if top_check_block[0].startswith('ИНН'):
+        for _ in range(2):
+            top_check_block.insert(0, '')
+    elif top_check_block[1].startswith('ИНН'):
         top_check_block.insert(1, '')
 
     for key, value in zip(TOP_TITLES_KEYS, top_check_block):
@@ -156,9 +159,9 @@ def parse_page(page: int) -> list | None:
 def main() -> None:
     """ main function for website parsing"""
     max_value_item: int = 0
-    if os.path.exists('files/today.json'):
+    if os.path.exists('files/today_checks.json'):
         print('Считываются данные из файла...')
-        with open('files/today.json', mode='r', encoding='utf-8') as full_file:
+        with open('files/today_checks.json', mode='r', encoding='utf-8') as full_file:
             data_from_file: list = json.load(full_file)
 
         if data_from_file:
@@ -168,7 +171,7 @@ def main() -> None:
 
     all_items: list = []
     break_flag: bool = False
-    for page in range(1, 5):
+    for page in range(1, 50_000):
         page: int
 
         checklist: list | None = parse_page(page)
@@ -197,11 +200,14 @@ def main() -> None:
 
     if not os.path.exists('files'):
         os.makedirs('files')
-    with open('files/today.json', 'w', encoding='utf-8') as json_file1:
+    with open('files/today_checks.json', 'w', encoding='utf-8') as json_file1:
         json.dump(all_items, json_file1, indent=4, ensure_ascii=False)
 
-    with open(f"files/all_items_{datetime.now().strftime('%d_%m_%Y')}.json", "w", encoding="utf-8") as json_file2:
+    with open(f"files/all_checks_{datetime.now().strftime('%d_%m_%Y')}.json", "w", encoding="utf-8") as json_file2:
         json.dump(all_items, json_file2, indent=4, ensure_ascii=False)
+
+    print('Парсинг успешно завершен!')
+    print(f'Итоговое количество чеков {len(all_items)}')
 
 
 if __name__ == '__main__':
